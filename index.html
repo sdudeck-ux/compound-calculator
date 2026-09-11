@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Life-Stage Compound Interest Lab</title>
+    <title>Life Career & Compound Interest Lab</title>
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -22,7 +22,7 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.5; padding: 20px; }
-        .container { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 380px 1fr; gap: 24px; }
+        .container { max-width: 1450px; margin: 0 auto; display: grid; grid-template-columns: 420px 1fr; gap: 24px; }
 
         header {
             grid-column: 1 / -1; background: linear-gradient(135deg, #0f172a, #1e293b); color: white;
@@ -37,15 +37,17 @@
         }
         .card h2 { font-size: 1.1rem; margin-bottom: 14px; color: var(--text-main); border-bottom: 2px solid var(--bg-color); padding-bottom: 6px; }
 
-        .control-group { margin-bottom: 12px; }
-        .control-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; color: var(--text-muted); }
-        .input-with-symbol { position: relative; display: flex; align-items: center; }
-        .input-with-symbol span { position: absolute; left: 10px; color: var(--text-muted); font-size: 0.9rem; font-weight: bold; }
-        .input-with-symbol input, select { width: 100%; padding: 8px 10px 8px 26px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.95rem; }
-        select { padding-left: 10px; }
+        .control-group { margin-bottom: 10px; }
+        .control-group label { display: block; font-size: 0.78rem; font-weight: 600; margin-bottom: 3px; color: var(--text-muted); }
+        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
-        .stage-box { background: #f1f5f9; border-left: 4px solid #3b82f6; padding: 12px; border-radius: 6px; margin-bottom: 12px; }
-        .stage-box h3 { font-size: 0.85rem; color: #1e40af; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .input-with-symbol { position: relative; display: flex; align-items: center; }
+        .input-with-symbol span { position: absolute; left: 8px; color: var(--text-muted); font-size: 0.85rem; font-weight: bold; }
+        .input-with-symbol input { width: 100%; padding: 6px 8px 6px 22px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.88rem; }
+
+        .stage-box { background: #f8fafc; border-left: 4px solid #3b82f6; padding: 10px 12px; border-radius: 6px; margin-bottom: 10px; border: 1px solid var(--border-color); border-left-width: 4px; }
+        .stage-box h3 { font-size: 0.82rem; color: #1e40af; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; justify-content: space-between; }
+        .stage-box .calculated-mo { font-size: 0.75rem; color: #059669; font-weight: bold; }
 
         .rate-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .rate-input { border-left: 3px solid #ccc; padding-left: 6px; }
@@ -77,7 +79,7 @@
         .summary-card .val { font-size: 1.3rem; font-weight: bold; margin-bottom: 2px; }
         .summary-card .sub-val { font-size: 0.75rem; color: var(--text-muted); }
 
-        .chart-container { position: relative; height: 380px; margin-bottom: 20px; }
+        .chart-container { position: relative; height: 400px; margin-bottom: 20px; }
         .table-responsive { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; text-align: right; font-size: 0.85rem; }
         th, td { padding: 8px 10px; border-bottom: 1px solid var(--border-color); }
@@ -100,63 +102,95 @@
 
 <div class="container">
     <header>
-        <h1>Life-Stage Compound Interest Calculator</h1>
-        <p>See how your wealth compounds as you progress from high school into your working career.</p>
+        <h1>Career Income & Compound Interest Simulator</h1>
+        <p>Map out your lifetime salary potential and see how saving a percentage of your paycheck builds wealth from Age 16 to 65.</p>
     </header>
 
     <!-- LEFT: CONTROLS PANEL -->
     <aside>
         <div class="card">
-            <h2>1. Starting Out</h2>
+            <h2>1. Initial Savings</h2>
             <div class="control-group">
-                <label for="initialDeposit">Initial Deposit / Savings Right Now</label>
+                <label for="initialDeposit">Starting Savings Balance ($)</label>
                 <div class="input-with-symbol">
                     <span>$</span>
                     <input type="number" id="initialDeposit" value="500" min="0" step="50">
                 </div>
             </div>
-            <div class="control-group">
-                <label for="contributionType">Contribution Method</label>
-                <select id="contributionType">
-                    <option value="fixed">Fixed Monthly Amount ($)</option>
-                    <option value="percent">Percentage of Annual Salary (%)</option>
-                </select>
-            </div>
 
-            <h2>2. Life Stage Contributions</h2>
+            <h2>2. 5-Stage Career & Salary Map</h2>
 
             <!-- STAGE 1 -->
             <div class="stage-box" style="border-color: #3b82f6;">
-                <h3>Stage 1: High School & College (Ages 18–22)</h3>
-                <div class="control-group">
-                    <label id="lblStage1">Monthly Contribution ($)</label>
-                    <div class="input-with-symbol">
-                        <span id="symStage1">$</span>
-                        <input type="number" id="valStage1" value="100" min="0">
+                <h3>Stage 1: High School (Ages 16–18) <span class="calculated-mo" id="moStage1">$100/mo</span></h3>
+                <div class="input-row">
+                    <div class="control-group">
+                        <label>Annual Income</label>
+                        <div class="input-with-symbol"><span>$</span><input type="number" id="salStage1" value="8000"></div>
+                    </div>
+                    <div class="control-group">
+                        <label>Savings Rate (%)</label>
+                        <div class="input-with-symbol"><span style="left:auto; right:8px;">%</span><input type="number" id="rateStage1" value="15" style="padding-left:8px; padding-right:20px;"></div>
                     </div>
                 </div>
             </div>
 
             <!-- STAGE 2 -->
             <div class="stage-box" style="border-color: #8b5cf6;">
-                <h3>Stage 2: Early Career (Ages 23–30)</h3>
-                <div class="control-group">
-                    <label id="lblStage2">Monthly Contribution ($)</label>
-                    <div class="input-with-symbol">
-                        <span id="symStage2">$</span>
-                        <input type="number" id="valStage2" value="350" min="0">
+                <h3>Stage 2: College / Trade (Ages 19–23) <span class="calculated-mo" id="moStage2">$208/mo</span></h3>
+                <div class="input-row">
+                    <div class="control-group">
+                        <label>Annual Income</label>
+                        <div class="input-with-symbol"><span>$</span><input type="number" id="salStage2" value="25000"></div>
+                    </div>
+                    <div class="control-group">
+                        <label>Savings Rate (%)</label>
+                        <div class="input-with-symbol"><span style="left:auto; right:8px;">%</span><input type="number" id="rateStage2" value="10" style="padding-left:8px; padding-right:20px;"></div>
                     </div>
                 </div>
             </div>
 
             <!-- STAGE 3 -->
+            <div class="stage-box" style="border-color: #06b6d4;">
+                <h3>Stage 3: Early Career (Ages 24–30) <span class="calculated-mo" id="moStage3">$550/mo</span></h3>
+                <div class="input-row">
+                    <div class="control-group">
+                        <label>Annual Income</label>
+                        <div class="input-with-symbol"><span>$</span><input type="number" id="salStage3" value="55000"></div>
+                    </div>
+                    <div class="control-group">
+                        <label>Savings Rate (%)</label>
+                        <div class="input-with-symbol"><span style="left:auto; right:8px;">%</span><input type="number" id="rateStage3" value="12" style="padding-left:8px; padding-right:20px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STAGE 4 -->
             <div class="stage-box" style="border-color: #10b981;">
-                <h3>Stage 3: Mid Career & Beyond (Ages 31–58)</h3>
-                <div class="control-group">
-                    <label id="lblStage3">Monthly Contribution ($)</label>
-                    <div class="input-with-symbol">
-                        <span id="symStage3">$</span>
-                        <input type="number" id="valStage3" value="750" min="0">
+                <h3>Stage 4: Mid-Career (Ages 31–45) <span class="calculated-mo" id="moStage4">$1,062/mo</span></h3>
+                <div class="input-row">
+                    <div class="control-group">
+                        <label>Annual Income</label>
+                        <div class="input-with-symbol"><span>$</span><input type="number" id="salStage4" value="85000"></div>
+                    </div>
+                    <div class="control-group">
+                        <label>Savings Rate (%)</label>
+                        <div class="input-with-symbol"><span style="left:auto; right:8px;">%</span><input type="number" id="rateStage4" value="15" style="padding-left:8px; padding-right:20px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STAGE 5 -->
+            <div class="stage-box" style="border-color: #f59e0b;">
+                <h3>Stage 5: Late Career (Ages 46–65) <span class="calculated-mo" id="moStage5">$1,833/mo</span></h3>
+                <div class="input-row">
+                    <div class="control-group">
+                        <label>Annual Income</label>
+                        <div class="input-with-symbol"><span>$</span><input type="number" id="salStage5" value="110000"></div>
+                    </div>
+                    <div class="control-group">
+                        <label>Savings Rate (%)</label>
+                        <div class="input-with-symbol"><span style="left:auto; right:8px;">%</span><input type="number" id="rateStage5" value="20" style="padding-left:8px; padding-right:20px;"></div>
                     </div>
                 </div>
             </div>
@@ -195,7 +229,7 @@
         </div>
     </aside>
 
-    <!-- RIGHT: VISUALS -->
+    <!-- RIGHT: VISUAL OUTPUTS -->
     <main>
         <div class="summary-cards">
             <div class="summary-card savings">
@@ -221,29 +255,29 @@
         </div>
 
         <div class="card">
-            <h2>Growth Benchmarks (By Age 58)</h2>
+            <h2>Lifetime Retirement Goals (By Age 65)</h2>
             <div class="milestones" id="milestonesList"></div>
         </div>
 
         <div class="card">
-            <h2>Portfolio Growth Over Life Stages</h2>
+            <h2>Lifetime Net Worth Growth (Ages 16–65)</h2>
             <div class="chart-container">
                 <canvas id="growthChart"></canvas>
             </div>
         </div>
 
         <div class="card">
-            <h2>Life Stage Milestones Table</h2>
+            <h2>Career Life Stages Breakdown Table</h2>
             <div class="table-responsive">
                 <table>
                     <thead>
                         <tr>
-                            <th>Age (Year)</th>
-                            <th>Monthly Contribution</th>
+                            <th>Life Stage & Age</th>
+                            <th>Annual Salary</th>
+                            <th>Monthly Savings</th>
                             <th>Total Out-of-Pocket</th>
                             <th>Std. Savings</th>
                             <th>HYSA</th>
-                            <th>1-Yr CD</th>
                             <th>S&P 500 Index</th>
                         </tr>
                     </thead>
@@ -253,15 +287,15 @@
         </div>
 
         <div class="card">
-            <h2>Financial Concept Callouts</h2>
+            <h2>Financial Mastery Callouts</h2>
             <div class="edu-grid">
                 <div class="edu-card">
-                    <h4>The Power of "Ramping Up"</h4>
-                    <p>You don't need a huge salary right now to build wealth. Saving $50–$100 in high school builds the discipline, and increasing contributions as your career grows creates compound momentum!</p>
+                    <h4>Pay Yourself First</h4>
+                    <p>Instead of saving "whatever is left over," set up an automatic transfer of your target savings percentage (e.g., 15%) on payday before spending on anything else.</p>
                 </div>
                 <div class="edu-card">
-                    <h4>Roth IRA for Young Earners</h4>
-                    <p>If you earn money from a part-time job, you can open a Roth IRA. Contributions grow <strong>100% tax-free</strong>, making it the most powerful tool for young investors.</p>
+                    <h4>Why Income Growth + Investing = Wealth</h4>
+                    <p>Increasing your salary gives you more fuel (money to invest), but compounding gives you the engine. Combined over 40–50 years, you build multi-million dollar security.</p>
                 </div>
             </div>
         </div>
@@ -273,6 +307,7 @@
         18.4, -18.1, 28.7, 18.4, 31.5, -4.4, 21.8, 11.9, 1.4, 13.7, 
         32.4, 16.0, 2.1, 15.0, 26.5, -37.0, 5.5, 15.8, 4.9, -11.9, 
         -22.1, -11.9, 21.0, 28.6, 33.4, 23.0, 37.6, 1.3, 13.7, 7.6,
+        18.4, -18.1, 28.7, 18.4, 31.5, -4.4, 21.8, 11.9, 1.4, 13.7,
         18.4, -18.1, 28.7, 18.4, 31.5, -4.4, 21.8, 11.9, 1.4, 13.7
     ];
 
@@ -280,10 +315,11 @@
 
     const inputs = {
         initial: document.getElementById('initialDeposit'),
-        type: document.getElementById('contributionType'),
-        valStage1: document.getElementById('valStage1'),
-        valStage2: document.getElementById('valStage2'),
-        valStage3: document.getElementById('valStage3'),
+        sal1: document.getElementById('salStage1'), rate1: document.getElementById('rateStage1'),
+        sal2: document.getElementById('salStage2'), rate2: document.getElementById('rateStage2'),
+        sal3: document.getElementById('salStage3'), rate3: document.getElementById('rateStage3'),
+        sal4: document.getElementById('salStage4'), rate4: document.getElementById('rateStage4'),
+        sal5: document.getElementById('salStage5'), rate5: document.getElementById('rateStage5'),
         rateSavings: document.getElementById('rateSavings'),
         rateHYSA: document.getElementById('rateHYSA'),
         rateCD: document.getElementById('rateCD'),
@@ -296,52 +332,32 @@
         return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(amt);
     }
 
-    function updateMethodLabels() {
-        const isPercent = inputs.type.value === 'percent';
-        const symbol = isPercent ? '%' : '$';
-        
-        document.getElementById('lblStage1').textContent = isPercent ? 'Savings Rate (% of salary)' : 'Monthly Contribution ($)';
-        document.getElementById('lblStage2').textContent = isPercent ? 'Savings Rate (% of salary)' : 'Monthly Contribution ($)';
-        document.getElementById('lblStage3').textContent = isPercent ? 'Savings Rate (% of salary)' : 'Monthly Contribution ($)';
-        
-        document.getElementById('symStage1').textContent = symbol;
-        document.getElementById('symStage2').textContent = symbol;
-        document.getElementById('symStage3').textContent = symbol;
-
-        if (isPercent && inputs.valStage1.value > 100) inputs.valStage1.value = 10;
-        if (isPercent && inputs.valStage2.value > 100) inputs.valStage2.value = 15;
-        if (isPercent && inputs.valStage3.value > 100) inputs.valStage3.value = 20;
-    }
-
-    function getMonthlyContributionForYear(year) {
-        const isPercent = inputs.type.value === 'percent';
-        let val1 = parseFloat(inputs.valStage1.value) || 0;
-        let val2 = parseFloat(inputs.valStage2.value) || 0;
-        let val3 = parseFloat(inputs.valStage3.value) || 0;
-
-        // Stage 1: Years 1-5 (Ages 18-22)
-        // Stage 2: Years 6-13 (Ages 23-30)
-        // Stage 3: Years 14-40 (Ages 31-58)
-        
-        if (!isPercent) {
-            if (year <= 5) return val1;
-            if (year <= 13) return val2;
-            return val3;
+    function getStageData(age) {
+        // Returns { salary, percent, monthlyContrib, stageName }
+        if (age <= 18) {
+            let s = parseFloat(inputs.sal1.value)||0, r = parseFloat(inputs.rate1.value)||0;
+            return { sal: s, rate: r, pmt: (s * (r/100)) / 12, name: "Stage 1: High School" };
+        } else if (age <= 23) {
+            let s = parseFloat(inputs.sal2.value)||0, r = parseFloat(inputs.rate2.value)||0;
+            return { sal: s, rate: r, pmt: (s * (r/100)) / 12, name: "Stage 2: College/Trade" };
+        } else if (age <= 30) {
+            let s = parseFloat(inputs.sal3.value)||0, r = parseFloat(inputs.rate3.value)||0;
+            return { sal: s, rate: r, pmt: (s * (r/100)) / 12, name: "Stage 3: Early Career" };
+        } else if (age <= 45) {
+            let s = parseFloat(inputs.sal4.value)||0, r = parseFloat(inputs.rate4.value)||0;
+            return { sal: s, rate: r, pmt: (s * (r/100)) / 12, name: "Stage 4: Mid-Career" };
         } else {
-            // Estimated typical salaries per stage for high school demo
-            let estSalary = 0;
-            if (year <= 5) estSalary = 15000;       // HS/College Part-Time
-            else if (year <= 13) estSalary = 50000; // Early Career
-            else estSalary = 85000;                 // Mid/Late Career
-
-            let percent = (year <= 5 ? val1 : year <= 13 ? val2 : val3) / 100;
-            return (estSalary * percent) / 12;
+            let s = parseFloat(inputs.sal5.value)||0, r = parseFloat(inputs.rate5.value)||0;
+            return { sal: s, rate: r, pmt: (s * (r/100)) / 12, name: "Stage 5: Late Career" };
         }
     }
 
     function calculateGrowth() {
         const P = parseFloat(inputs.initial.value) || 0;
-        const totalYears = 40; // Age 18 to Age 58
+        const startAge = 16;
+        const endAge = 65;
+        const totalYears = endAge - startAge + 1; // 50 Years (16 to 65)
+
         const adjustInflation = inputs.toggleInflation.checked;
         const inflationRate = 0.025;
 
@@ -354,13 +370,13 @@
 
         const useVolatility = inputs.toggleVolatility.checked;
 
-        let labels = ['Age 18'];
+        let labels = ['Age 16'];
         let dataPrincipal = [P];
         let dataSavings = [P];
         let dataHYSA = [P];
         let dataCD = [P];
         let dataSP500 = [P];
-        let monthlyContributionsArr = [0];
+        let yearlyDetails = [];
 
         let balPrincipal = P;
         let balSavings = P;
@@ -368,12 +384,12 @@
         let balCD = P;
         let balSP500 = P;
 
-        for (let y = 1; y <= totalYears; y++) {
-            let age = 18 + y;
-            labels.push(`Age ${age}`);
+        for (let y = 1; y < totalYears; y++) {
+            let currentAge = startAge + y;
+            labels.push(`Age ${currentAge}`);
 
-            let PMT = getMonthlyContributionForYear(y);
-            monthlyContributionsArr.push(Math.round(PMT));
+            let stageInfo = getStageData(currentAge);
+            let PMT = stageInfo.pmt;
 
             for (let m = 1; m <= 12; m++) {
                 balPrincipal += PMT;
@@ -398,13 +414,30 @@
             dataHYSA.push(Math.round(balHYSA / factor));
             dataCD.push(Math.round(balCD / factor));
             dataSP500.push(Math.round(balSP500 / factor));
+
+            yearlyDetails.push({
+                age: currentAge,
+                stage: stageInfo.name,
+                salary: stageInfo.sal,
+                pmt: PMT,
+                principal: Math.round(balPrincipal / factor),
+                savings: Math.round(balSavings / factor),
+                hysa: Math.round(balHYSA / factor),
+                sp500: Math.round(balSP500 / factor)
+            });
         }
 
-        return { labels, dataPrincipal, dataSavings, dataHYSA, dataCD, dataSP500, monthlyContributionsArr };
+        return { labels, dataPrincipal, dataSavings, dataHYSA, dataCD, dataSP500, yearlyDetails };
     }
 
     function updateUI() {
-        updateMethodLabels();
+        // Update Calculated Monthly Badges in Control Panel
+        document.getElementById('moStage1').textContent = formatCurrency(getStageData(17).pmt) + '/mo';
+        document.getElementById('moStage2').textContent = formatCurrency(getStageData(20).pmt) + '/mo';
+        document.getElementById('moStage3').textContent = formatCurrency(getStageData(25).pmt) + '/mo';
+        document.getElementById('moStage4').textContent = formatCurrency(getStageData(35).pmt) + '/mo';
+        document.getElementById('moStage5').textContent = formatCurrency(getStageData(50).pmt) + '/mo';
+
         const result = calculateGrowth();
         const lastIdx = result.labels.length - 1;
         const finalPrincipal = result.dataPrincipal[lastIdx];
@@ -429,11 +462,12 @@
 
     function updateMilestones(finalSPValue) {
         const milestones = [
-            { name: "🚗 First Car", amount: 10000 },
-            { name: "🏡 House Down Payment", amount: 60000 },
-            { name: "💼 Business Start-Up", amount: 150000 },
-            { name: "🚀 Financial Freedom Goal", amount: 500000 },
-            { name: "🌴 Millionaire Club", amount: 1000000 }
+            { name: "🚗 First Car Goal", amount: 15000 },
+            { name: "🏡 House Down Payment", amount: 75000 },
+            { name: "💼 Quarter Million", amount: 250000 },
+            { name: "🚀 Half Million Goal", amount: 500000 },
+            { name: "🌴 Millionaire Status", amount: 1000000 },
+            { name: "👑 Multi-Millionaire", amount: 2500000 }
         ];
 
         const container = document.getElementById('milestonesList');
@@ -452,21 +486,20 @@
         const tbody = document.getElementById('breakdownTableBody');
         tbody.innerHTML = '';
 
-        // Key Milestone Ages to highlight in the table
-        const milestoneAges = [22, 30, 40, 50, 58];
+        // Target ages representing the end of each stage
+        const highlightAges = [18, 23, 30, 45, 65];
 
-        milestoneAges.forEach(age => {
-            let idx = age - 18;
-            if (idx >= 0 && idx < result.labels.length) {
+        result.yearlyDetails.forEach(item => {
+            if (highlightAges.includes(item.age)) {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>Age ${age}</td>
-                    <td>${formatCurrency(result.monthlyContributionsArr[idx])}/mo</td>
-                    <td>${formatCurrency(result.dataPrincipal[idx])}</td>
-                    <td>${formatCurrency(result.dataSavings[idx])}</td>
-                    <td>${formatCurrency(result.dataHYSA[idx])}</td>
-                    <td>${formatCurrency(result.dataCD[idx])}</td>
-                    <td style="font-weight:bold; color: var(--color-sp500);">${formatCurrency(result.dataSP500[idx])}</td>
+                    <td><strong>Age ${item.age}</strong><br><small style="color:var(--text-muted);">${item.stage}</small></td>
+                    <td>${formatCurrency(item.salary)}/yr</td>
+                    <td>${formatCurrency(item.pmt)}/mo</td>
+                    <td>${formatCurrency(item.principal)}</td>
+                    <td>${formatCurrency(item.savings)}</td>
+                    <td>${formatCurrency(item.hysa)}</td>
+                    <td style="font-weight:bold; color: var(--color-sp500);">${formatCurrency(item.sp500)}</td>
                 `;
                 tbody.appendChild(tr);
             }
@@ -482,7 +515,7 @@
             data: {
                 labels: result.labels,
                 datasets: [
-                    { label: 'Total Invested', data: result.dataPrincipal, borderColor: '#64748b', borderDash: [5, 5], pointRadius: 0 },
+                    { label: 'Out-of-Pocket Invested', data: result.dataPrincipal, borderColor: '#64748b', borderDash: [5, 5], pointRadius: 0 },
                     { label: 'Std. Savings', data: result.dataSavings, borderColor: '#ef4444', pointRadius: 1 },
                     { label: 'HYSA', data: result.dataHYSA, borderColor: '#f97316', pointRadius: 1 },
                     { label: '1-Yr CD', data: result.dataCD, borderColor: '#3b82f6', pointRadius: 1 },
