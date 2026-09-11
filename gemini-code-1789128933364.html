@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compound Interest & Investment Simulator</title>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --border-color: #e2e8f0;
+            
+            /* Asset Colors */
+            --color-savings: #ef4444; /* Red */
+            --color-hysa: #f97316;    /* Orange */
+            --color-cd: #3b82f6;      /* Blue */
+            --color-sp500: #10b981;   /* Green */
+            --color-principal: #64748b; /* Slate */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            gap: 24px;
+        }
+
+        header {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            color: white;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 6px;
+        }
+
+        header p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+            color: var(--text-main);
+            border-bottom: 2px solid var(--bg-color);
+            padding-bottom: 8px;
+        }
+
+        /* Controls Panel */
+        .control-group {
+            margin-bottom: 16px;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-muted);
+        }
+
+        .input-with-symbol {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-with-symbol span {
+            position: absolute;
+            left: 12px;
+            color: var(--text-muted);
+            font-weight: bold;
+        }
+
+        .input-with-symbol input {
+            width: 100%;
+            padding: 8px 12px 8px 28px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .slider-val {
+            text-align: right;
+            font-weight: bold;
+            color: #2563eb;
+            font-size: 0.9rem;
+        }
+
+        .rate-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .rate-input {
+            border-left: 4px solid #ccc;
+            padding-left: 8px;
+        }
+
+        .rate-input.savings { border-color: var(--color-savings); }
+        .rate-input.hysa { border-color: var(--color-hysa); }
+        .rate-input.cd { border-color: var(--color-cd); }
+        .rate-input.sp500 { border-color: var(--color-sp500); }
+
+        .rate-input input {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+
+        /* Toggles */
+        .toggle-group {
+            background: var(--bg-color);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .toggle-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .toggle-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .toggle-item span {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        /* Switch UI */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 22px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider-switch {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .3s;
+            border-radius: 22px;
+        }
+
+        .slider-switch:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider-switch {
+            background-color: #2563eb;
+        }
+
+        input:checked + .slider-switch:before {
+            transform: translateX(22px);
+        }
+
+        /* Visual Outputs Section */
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 16px;
+            border-radius: 10px;
+            border-top: 4px solid #ccc;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .summary-card.savings { border-color: var(--color-savings); }
+        .summary-card.hysa { border-color: var(--color-hysa); }
+        .summary-card.cd { border-color: var(--color-cd); }
+        .summary-card.sp500 { border-color: var(--color-sp500); }
+
+        .summary-card h3 {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .summary-card .val {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .summary-card .sub-val {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: 20px;
+        }
+
+        /* Table */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: right;
+            font-size: 0.85rem;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: var(--bg-color);
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        td:first-child, th:first-child {
+            text-align: left;
+            font-weight: bold;
+        }
+
+        /* Badges & Educational Content */
+        .milestones {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .badge {
+            background: #e0e7ff;
+            color: #3730a3;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .badge.achieved {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .edu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .edu-card {
+            background: #f1f5f9;
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid #0284c7;
+        }
+
+        .edu-card h4 {
+            font-size: 0.95rem;
+            color: #0369a1;
+            margin-bottom: 6px;
+        }
+
+        .edu-card p {
+            font-size: 0.825rem;
+            color: #334155;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Compound Interest & Investing Lab</h1>
+        <p>Explore how tiny choices made in high school can turn into hundreds of thousands of dollars later in life.</p>
+    </header>
+
+    <!-- LEFT: INPUTS PANEL -->
+    <aside>
+        <div class="card">
+            <h2>1. Savings Strategy</h2>
+            
+            <div class="control-group">
+                <label for="initialDeposit">Initial Deposit</label>
+                <div class="input-with-symbol">
+                    <span>$</span>
+                    <input type="number" id="initialDeposit" value="500" min="0" max="50000" step="50">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="monthlyContribution">Monthly Contribution</label>
+                <div class="input-with-symbol">
+                    <span>$</span>
+                    <input type="number" id="monthlyContribution" value="100" min="0" max="2000" step="10">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="timeHorizon">Time Horizon (Years): <span id="yearsVal" class="slider-val">20</span></label>
+                <input type="range" id="timeHorizon" min="1" max="40" value="20">
+            </div>
+
+            <h2>2. Annual Return Rates (APY/ROI)</h2>
+            <div class="rate-grid">
+                <div class="control-group rate-input savings">
+                    <label>Std. Savings</label>
+                    <input type="number" id="rateSavings" value="0.45" step="0.05">%
+                </div>
+                <div class="control-group rate-input hysa">
+                    <label>HYSA / Money Mkt</label>
+                    <input type="number" id="rateHYSA" value="4.00" step="0.1">%
+                </div>
+                <div class="control-group rate-input cd">
+                    <label>1-Year CD</label>
+                    <input type="number" id="rateCD" value="4.25" step="0.1">%
+                </div>
+                <div class="control-group rate-input sp500">
+                    <label>S&P 500 Index</label>
+                    <input type="number" id="rateSP500" value="10.0" step="0.5">%
+                </div>
+            </div>
+
+            <h2>3. Simulation Variables</h2>
+            <div class="toggle-group">
+                <div class="toggle-item">
+                    <span>Historical Volatility Mode (S&P 500)</span>
+                    <label class="switch">
+                        <input type="checkbox" id="toggleVolatility">
+                        <span class="slider-switch"></span>
+                    </label>
+                </div>
+                <div class="toggle-item">
+                    <span>Adjust for Inflation (2.5% / yr)</span>
+                    <label class="switch">
+                        <input type="checkbox" id="toggleInflation">
+                        <span class="slider-switch"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Real-World S&P 500 Stats</h2>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">
+                Historical annualized average returns for broad market index funds (like VOO or FXAIX):
+            </p>
+            <ul style="font-size: 0.85rem; padding-left: 20px; color: var(--text-muted);">
+                <li><strong>10-Year Average:</strong> ~12.5%</li>
+                <li><strong>20-Year Average:</strong> ~9.8%</li>
+                <li><strong>30-Year Average:</strong> ~10.1%</li>
+            </ul>
+        </div>
+    </aside>
+
+    <!-- RIGHT: VISUAL OUTPUTS & DATA -->
+    <main>
+        <!-- Summary Cards -->
+        <div class="summary-cards">
+            <div class="summary-card savings">
+                <h3>Standard Savings</h3>
+                <div class="val" id="valSavings">$0</div>
+                <div class="sub-val" id="subSavings">Growth: $0</div>
+            </div>
+            <div class="summary-card hysa">
+                <h3>High-Yield Savings</h3>
+                <div class="val" id="valHYSA">$0</div>
+                <div class="sub-val" id="subHYSA">Growth: $0</div>
+            </div>
+            <div class="summary-card cd">
+                <h3>1-Yr Certificate of Deposit</h3>
+                <div class="val" id="valCD">$0</div>
+                <div class="sub-val" id="subCD">Growth: $0</div>
+            </div>
+            <div class="summary-card sp500">
+                <h3>S&P 500 Index Fund</h3>
+                <div class="val" id="valSP500">$0</div>
+                <div class="sub-val" id="subSP500">Growth: $0</div>
+            </div>
+        </div>
+
+        <!-- Milestones Bar -->
+        <div class="card">
+            <h2>S&P 500 Growth Benchmarks</h2>
+            <div class="milestones" id="milestonesList">
+                <!-- Dynamic Milestone Badges Inserted Here -->
+            </div>
+        </div>
+
+        <!-- Main Chart -->
+        <div class="card">
+            <h2>Portfolio Growth Over Time</h2>
+            <div class="chart-container">
+                <canvas id="growthChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Breakdown Table -->
+        <div class="card">
+            <h2>Milestone Breakdown Table</h2>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Timeline</th>
+                            <th>Total Principal</th>
+                            <th>Std. Savings</th>
+                            <th>HYSA</th>
+                            <th>1-Yr CD</th>
+                            <th>S&P 500 Index</th>
+                        </tr>
+                    </thead>
+                    <tbody id="breakdownTableBody">
+                        <!-- Dynamic Rows -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Educational Callouts -->
+        <div class="card">
+            <h2>Key Financial Concepts</h2>
+            <div class="edu-grid">
+                <div class="edu-card">
+                    <h4>FDIC Insurance</h4>
+                    <p>Savings Accounts, HYSAs, and CDs are backed by the federal government up to $250,000 per depositor. You cannot lose your principal money in these accounts.</p>
+                </div>
+                <div class="edu-card">
+                    <h4>Liquidity</h4>
+                    <p>Refers to how quickly you can access your cash. Savings accounts are highly liquid. CDs lock your cash away for a set term. Stocks are liquid, but selling during a crash can cause losses.</p>
+                </div>
+                <div class="edu-card">
+                    <h4>No-Load Index Funds & Expense Ratios</h4>
+                    <p>Index funds (like VOO) buy a piece of the 500 biggest U.S. companies. "No-load" means zero sales fee. Look for ultra-low expense ratios (e.g., 0.03%) so fees don't eat your profits.</p>
+                </div>
+                <div class="edu-card">
+                    <h4>Roth IRA for Working Teens</h4>
+                    <p>If you have a job (even part-time), you can open a Roth IRA. The money you invest grows <strong>100% tax-free</strong>, and withdrawals in retirement are completely untaxed!</p>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    // Historical S&P 500 yearly returns sequence for realistic Volatility Mode
+    const HISTORICAL_RETURNS = [
+        18.4, -18.1, 28.7, 18.4, 31.5, -4.4, 21.8, 11.9, 1.4, 13.7, 
+        32.4, 16.0, 2.1, 15.0, 26.5, -37.0, 5.5, 15.8, 4.9, -11.9, 
+        -22.1, -11.9, 21.0, 28.6, 33.4, 23.0, 37.6, 1.3, 13.7, 7.6
+    ];
+
+    let growthChart = null;
+
+    // Elements
+    const inputs = {
+        initial: document.getElementById('initialDeposit'),
+        monthly: document.getElementById('monthlyContribution'),
+        years: document.getElementById('timeHorizon'),
+        yearsVal: document.getElementById('yearsVal'),
+        rateSavings: document.getElementById('rateSavings'),
+        rateHYSA: document.getElementById('rateHYSA'),
+        rateCD: document.getElementById('rateCD'),
+        rateSP500: document.getElementById('rateSP500'),
+        toggleVolatility: document.getElementById('toggleVolatility'),
+        toggleInflation: document.getElementById('toggleInflation')
+    };
+
+    function formatCurrency(amount) {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            maximumFractionDigits: 0
+        }).format(amount);
+    }
+
+    // Compound Interest Calculation Engine
+    function calculateGrowth() {
+        const P = parseFloat(inputs.initial.value) || 0;
+        const PMT = parseFloat(inputs.monthly.value) || 0;
+        const years = parseInt(inputs.years.value) || 1;
+        const adjustInflation = inputs.toggleInflation.checked;
+        const inflationRate = 0.025; // 2.5%
+
+        const rates = {
+            savings: (parseFloat(inputs.rateSavings.value) || 0) / 100,
+            hysa: (parseFloat(inputs.rateHYSA.value) || 0) / 100,
+            cd: (parseFloat(inputs.rateCD.value) || 0) / 100,
+            sp500: (parseFloat(inputs.rateSP500.value) || 0) / 100
+        };
+
+        const useVolatility = inputs.toggleVolatility.checked;
+
+        let labels = ['Start'];
+        let dataPrincipal = [P];
+        let dataSavings = [P];
+        let dataHYSA = [P];
+        let dataCD = [P];
+        let dataSP500 = [P];
+
+        let balPrincipal = P;
+        let balSavings = P;
+        let balHYSA = P;
+        let balCD = P;
+        let balSP500 = P;
+
+        for (let y = 1; y <= years; y++) {
+            labels.push(`Year ${y}`);
+            
+            // Monthly compounding loop for 1 year
+            for (let m = 1; m <= 12; m++) {
+                balPrincipal += PMT;
+                
+                // Traditional compound interest (Monthly)
+                balSavings = (balSavings + PMT) * (1 + rates.savings / 12);
+                balHYSA = (balHYSA + PMT) * (1 + rates.hysa / 12);
+                balCD = (balCD + PMT) * (1 + rates.cd / 12);
+
+                // Smooth SP500 path
+                if (!useVolatility) {
+                    balSP500 = (balSP500 + PMT) * (1 + rates.sp500 / 12);
+                }
+            }
+
+            // Volatile S&P 500 Path applied annually
+            if (useVolatility) {
+                // Pick a historical return rate sequentially or fallback to base
+                const historicalIndex = (y - 1) % HISTORICAL_RETURNS.length;
+                const yearReturn = HISTORICAL_RETURNS[historicalIndex] / 100;
+                
+                // Apply contributions standard growth + end of year market swing
+                let yearContributions = PMT * 12;
+                balSP500 = (balSP500 + yearContributions) * (1 + yearReturn);
+            }
+
+            // Optional Inflation Adjustment (Real Purchasing Power)
+            let inflationFactor = adjustInflation ? Math.pow(1 + inflationRate, y) : 1;
+
+            dataPrincipal.push(Math.round(balPrincipal / inflationFactor));
+            dataSavings.push(Math.round(balSavings / inflationFactor));
+            dataHYSA.push(Math.round(balHYSA / inflationFactor));
+            dataCD.push(Math.round(balCD / inflationFactor));
+            dataSP500.push(Math.round(balSP500 / inflationFactor));
+        }
+
+        return {
+            labels,
+            dataPrincipal,
+            dataSavings,
+            dataHYSA,
+            dataCD,
+            dataSP500,
+            years
+        };
+    }
+
+    function updateUI() {
+        inputs.yearsVal.textContent = inputs.years.value;
+        const result = calculateGrowth();
+        
+        const lastIdx = result.labels.length - 1;
+        const finalPrincipal = result.dataPrincipal[lastIdx];
+        
+        // Helper to update card displays
+        const setCard = (valId, subId, finalVal) => {
+            document.getElementById(valId).textContent = formatCurrency(finalVal);
+            const growth = finalVal - finalPrincipal;
+            const subElem = document.getElementById(subId);
+            subElem.textContent = `Earned: ${formatCurrency(growth)}`;
+            subElem.style.color = growth >= 0 ? 'var(--color-sp500)' : 'var(--color-savings)';
+        };
+
+        setCard('valSavings', 'subSavings', result.dataSavings[lastIdx]);
+        setCard('valHYSA', 'subHYSA', result.dataHYSA[lastIdx]);
+        setCard('valCD', 'subCD', result.dataCD[lastIdx]);
+        setCard('valSP500', 'subSP500', result.dataSP500[lastIdx]);
+
+        updateMilestones(result.dataSP500[lastIdx], result.years);
+        updateTable(result);
+        updateChart(result);
+    }
+
+    function updateMilestones(finalSPValue, totalYears) {
+        const milestones = [
+            { name: "🚗 First Used Car", amount: 10000 },
+            { name: "🎓 College Fund / Emergency", amount: 25000 },
+            { name: "🏡 House Down Payment", amount: 60000 },
+            { name: "💼 Business Start-Up", amount: 100000 },
+            { name: "🚀 Financial Freedom Goal", amount: 500000 },
+            { name: "🌴 Millionaire Club", amount: 1000000 }
+        ];
+
+        const container = document.getElementById('milestonesList');
+        container.innerHTML = '';
+
+        milestones.forEach(m => {
+            const isAchieved = finalSPValue >= m.amount;
+            const badge = document.createElement('div');
+            badge.className = `badge ${isAchieved ? 'achieved' : ''}`;
+            badge.innerHTML = `${m.name} (${formatCurrency(m.amount)}) ${isAchieved ? '✓' : '🔒'}`;
+            container.appendChild(badge);
+        });
+    }
+
+    function updateTable(result) {
+        const tbody = document.getElementById('breakdownTableBody');
+        tbody.innerHTML = '';
+
+        const targetYears = [5, 10, 15, 20, 30, 40];
+        
+        targetYears.forEach(y => {
+            if (y <= result.years) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>Year ${y}</td>
+                    <td>${formatCurrency(result.dataPrincipal[y])}</td>
+                    <td>${formatCurrency(result.dataSavings[y])}</td>
+                    <td>${formatCurrency(result.dataHYSA[y])}</td>
+                    <td>${formatCurrency(result.dataCD[y])}</td>
+                    <td style="font-weight:bold; color: var(--color-sp500);">${formatCurrency(result.dataSP500[y])}</td>
+                `;
+                tbody.appendChild(tr);
+            }
+        });
+    }
+
+    function updateChart(result) {
+        const ctx = document.getElementById('growthChart').getContext('2d');
+
+        if (growthChart) {
+            growthChart.destroy();
+        }
+
+        growthChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: result.labels,
+                datasets: [
+                    {
+                        label: 'Principal Invested',
+                        data: result.dataPrincipal,
+                        borderColor: '#64748b',
+                        borderDash: [5, 5],
+                        fill: false,
+                        pointRadius: 0
+                    },
+                    {
+                        label: 'Std. Savings',
+                        data: result.dataSavings,
+                        borderColor: '#ef4444',
+                        backgroundColor: '#ef4444',
+                        fill: false,
+                        pointRadius: 1
+                    },
+                    {
+                        label: 'HYSA',
+                        data: result.dataHYSA,
+                        borderColor: '#f97316',
+                        backgroundColor: '#f97316',
+                        fill: false,
+                        pointRadius: 1
+                    },
+                    {
+                        label: '1-Year CD',
+                        data: result.dataCD,
+                        borderColor: '#3b82f6',
+                        backgroundColor: '#3b82f6',
+                        fill: false,
+                        pointRadius: 1
+                    },
+                    {
+                        label: 'S&P 500 Index',
+                        data: result.dataSP500,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        borderWidth: 3,
+                        pointRadius: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                scales: {
+                    y: {
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + formatCurrency(context.raw);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Attach Event Listeners
+    Object.values(inputs).forEach(input => {
+        input.addEventListener('input', updateUI);
+        input.addEventListener('change', updateUI);
+    });
+
+    // Initial render
+    updateUI();
+</script>
+</body>
+</html>
